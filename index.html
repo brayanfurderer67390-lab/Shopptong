@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SHOPPTON-G68</title>
+<style>
+:root{--bg:#050705;--card:#0d120d;--line:#293529;--green:#48ff45;--gold:#d8b84b;--muted:#9aa59a}
+*{box-sizing:border-box}body{margin:0;background:#020302;color:#f4f7f3;font-family:system-ui,-apple-system,sans-serif}
+.app{max-width:520px;margin:auto;min-height:100vh;background:radial-gradient(circle at 50% -10%,#173a18,#050805 45%,#020302 75%);padding-bottom:82px}
+header{position:sticky;top:0;z-index:5;padding:17px;background:#020302e8;backdrop-filter:blur(15px)}
+.logo{text-align:center;font-size:27px;font-weight:1000;color:var(--gold)}.logo span{color:var(--green)}
+main{padding:16px}.hero{padding:20px 0}.hero h1{font-size:30px;margin:0 0 7px}.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:linear-gradient(145deg,#111811,#080b08);border:1px solid var(--line);border-radius:18px;padding:15px}
+button{font:inherit;cursor:pointer}.primary{width:100%;padding:13px;border:0;border-radius:14px;background:var(--green);color:#041004;font-weight:900}
+.product{display:grid;grid-template-columns:88px 1fr;gap:12px;margin:10px 0}.pic{height:88px;border-radius:15px;background:linear-gradient(135deg,#21361f,#a88332);display:grid;place-items:center;font-size:32px}.price{color:var(--green);font-weight:900;font-size:18px;margin:7px 0}.add{width:100%;padding:10px;border:0;border-radius:12px;background:var(--green);color:#041004;font-weight:900}
+.page{display:none}.page.active{display:block}.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);display:grid;grid-template-columns:repeat(4,1fr);background:#050705f2;border-top:1px solid var(--line);padding:8px 5px calc(8px + env(safe-area-inset-bottom));z-index:10}.nav{border:0;background:none;color:#899389;font-size:11px}.nav.active{color:var(--green)}.nav b{display:block;font-size:20px}.row{display:flex;justify-content:space-between;align-items:center}.gate{position:fixed;inset:0;z-index:50;background:#020302;display:grid;place-items:center;padding:25px}.gatebox{max-width:390px;text-align:center}.age{width:155px;height:155px;border:2px solid var(--green);border-radius:50%;display:grid;place-items:center;margin:25px auto;font-size:60px;font-weight:1000;color:var(--green);box-shadow:0 0 30px #48ff4544}.secondary{width:100%;padding:12px;margin-top:10px;border:1px solid #445044;border-radius:14px;background:none;color:white}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="gate" class="gate"><div class="gatebox"><div class="logo">SHOPPTON-<span>G68</span></div><div class="age">18+</div><h2>Accès réservé aux majeurs</h2><p class="muted">Cette démonstration est destinée à des produits légaux et conformes à la réglementation applicable.</p><button class="primary" onclick="enter()">J'ai 18 ans ou plus</button><button class="secondary" onclick="location.href='about:blank'">Quitter</button></div></div>
+
+<div class="app">
+<header><div class="logo">SHOPPTON-<span>G68</span></div></header>
+<main>
+<section id="home" class="page active">
+<div class="hero"><h1>Bienvenue 👋</h1><p class="muted">Catalogue premium de produits légalement commercialisables.</p></div>
+<div class="grid">
+<button class="card" onclick="show('catalog')"><b>CBD Premium</b><br><span class="muted">Sélection boutique</span></button>
+<button class="card" onclick="show('catalog')"><b>Accessoires</b><br><span class="muted">Sélection boutique</span></button>
+</div>
+<div class="hero"><h2>Nouveautés</h2><div id="homeProducts"></div></div>
+</section>
+
+<section id="catalog" class="page"><div class="row"><h1>Catalogue</h1><button onclick="show('home')">Retour</button></div><div id="products"></div></section>
+
+<section id="cart" class="page"><div class="row"><h1>Panier</h1><button onclick="clearCart()">Vider</button></div><div id="cartList"></div><div class="row"><h2>Total</h2><h2 id="total">0,00 €</h2></div><p class="muted">Les conditions de vente et de livraison doivent respecter la réglementation locale.</p><button class="primary" onclick="contact()">Contacter @shopptong68 sur Telegram</button></section>
+
+<section id="delivery" class="page"><h1>Livraison</h1><div class="card"><b>📍 Secteur 68</b><p class="muted">Zones desservies et frais à configurer selon votre activité et la réglementation applicable.</p></div></section>
+
+<section id="contact" class="page"><h1>Contact</h1><div class="card"><b>Telegram</b><p>@shopptong68</p><button class="primary" onclick="contact()">Ouvrir Telegram</button></div></section>
+</main>
+<nav class="bottom">
+<button class="nav active" data-page="home" onclick="show('home')"><b>⌂</b>Accueil</button>
+<button class="nav" data-page="catalog" onclick="show('catalog')"><b>▦</b>Catalogue</button>
+<button class="nav" data-page="cart" onclick="show('cart')"><b>🛒</b>Panier <span id="count"></span></button>
+<button class="nav" data-page="delivery" onclick="show('delivery')"><b>⌖</b>Livraison</button>
+</nav>
+</div>
+<script>
+const products=[
+{id:1,name:"CBD Premium 1",price:10,emoji:"🌿"},
+{id:2,name:"CBD Premium 2",price:12,emoji:"🍃"},
+{id:3,name:"Accessoire Premium",price:15,emoji:"✨"},
+{id:4,name:"Pack Découverte",price:20,emoji:"📦"}];
+let cart=[];
+function enter(){localStorage.setItem("age18","1");document.getElementById("gate").classList.add("hidden")}
+if(localStorage.getItem("age18")==="1")document.getElementById("gate").classList.add("hidden");
+function show(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.page===id));if(id==="catalog")render();if(id==="cart")renderCart()}
+function card(p){return `<div class="card product"><div class="pic">${p.emoji}</div><div><b>${p.name}</b><div class="price">${p.price.toFixed(2).replace(".",",")} €</div><button class="add" onclick="add(${p.id})">Ajouter au panier</button></div></div>`}
+function render(){document.getElementById("products").innerHTML=products.map(card).join("")}
+function add(id){cart.push(id);update();show("cart")}
+function update(){document.getElementById("count").textContent=cart.length?cart.length:""}
+function renderCart(){let box=document.getElementById("cartList");if(!cart.length){box.innerHTML='<div class="card">Votre panier est vide.</div>';document.getElementById("total").textContent="0,00 €";return}let counts={};cart.forEach(id=>counts[id]=(counts[id]||0)+1);box.innerHTML=Object.entries(counts).map(([id,n])=>{let p=products.find(x=>x.id==id);return `<div class="card row"><span>${p.emoji} ${p.name} × ${n}</span><b>${(p.price*n).toFixed(2).replace(".",",")} €</b></div>`}).join("");document.getElementById("total").textContent=cart.reduce((s,id)=>s+products.find(p=>p.id===id).price,0).toFixed(2).replace(".",",")+" €"}
+function clearCart(){cart=[];update();renderCart()}
+function contact(){window.open("https://t.me/shopptong68","_blank")}
+render();document.getElementById("homeProducts").innerHTML=products.slice(0,2).map(card).join("");update();
+</script>
+</body>
+</html>

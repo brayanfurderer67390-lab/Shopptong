@@ -800,30 +800,23 @@ function sendOrder(){
 
 
   let message =
-    'Bonjour, je souhaite passer une commande.%0A%0A';
+`Bonjour, je souhaite passer une commande.
 
-  message +=
-    '👤 Nom : ' + name + '%0A';
-
-  message +=
-    '📞 Téléphone : ' + phone + '%0A';
-
-  message +=
-    '📍 Adresse : ' + address + '%0A';
-
-  message +=
-    '🗺️ Zone : ' + zone + '%0A';
-
+👤 Nom : ${name}
+📞 Téléphone : ${phone}
+📍 Adresse : ${address}
+🗺️ Zone : ${zone}`;
 
   if(note){
 
     message +=
-      '📝 Note : ' + note + '%0A';
+`\n📝 Note : ${note}`;
 
   }
 
 
-  message += '%0A🛒 COMMANDE :%0A';
+  message +=
+`\n\n🛒 COMMANDE :`;
 
 
   let total = 0;
@@ -838,33 +831,37 @@ function sendOrder(){
     total += lineTotal;
 
     message +=
-      '• ' +
-      product.name +
-      ' × ' +
-      item.quantity +
-      ' = ' +
-      lineTotal.toFixed(2) +
-      ' €%0A';
+`\n• ${product.name} × ${item.quantity} = ${lineTotal.toFixed(2)} €`;
 
   });
 
 
   message +=
-    '%0A💰 TOTAL : ' +
-    total.toFixed(2) +
-    ' €';
+`\n\n💰 TOTAL : ${total.toFixed(2)} €`;
 
 
-  const contact =
+  let contact =
     document.getElementById('contactBtn').href;
 
+  if(!contact || contact === '#'){
 
-  if(contact && contact !== '#'){
+    alert('Contact Telegram non configuré.');
 
-    window.open(
-      contact + '?text=' + message,
-      '_blank'
-    );
+    return;
+
+  }
+
+
+  contact =
+    contact.replace(/\/$/, '');
+
+  const telegramUrl =
+    contact + '?text=' + encodeURIComponent(message);
+
+
+  window.location.href = telegramUrl;
+
+}
 
   }
 

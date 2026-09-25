@@ -105,7 +105,7 @@ async function saveProduct(){
 async function deleteProduct(id){if(!confirm('Supprimer ce produit ?'))return;const {error}=await sb.from('products').delete().eq('id',id);if(error)productMsg.textContent=error.message;else await loadProducts();}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 sb.auth.onAuthStateChange(()=>{});
-boot();
+</script>
 </script>
 </body>
 </html>

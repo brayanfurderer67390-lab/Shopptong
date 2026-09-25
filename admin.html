@@ -49,56 +49,182 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://eioqszrcedwiixicsnij.supabase.co';
-const SUPABASE_ANON_KEY='sb_publishable_UVYmcUeEQtuJwKs0awaFKQ_SJd_mqJX
-
-
-';
+const SUPABASE_ANON_KEY='TA_CLE_PUBLISHABLE';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-let products=[];
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
 let products=[];
 
 async function login(){
- const msg=document.getElementById('loginMsg'); msg.textContent='Connexion…';
- const {error}=await sb.auth.signInWithPassword({email:email.value,password:password.value});
- msg.textContent=error?error.message:'';
- if(!error) await boot();
+  const msg=document.getElementById('loginMsg');
+  msg.textContent='Connexion…';
+  const {error}=await sb.auth.signInWithPassword({
+    email:document.getElementById('email').value,
+    password:document.getElementById('password').value
+  });
+  msg.textContent=error ? error.message : '';
+  if(!error) await boot();
 }
-async function logout(){await sb.auth.signOut();location.reload();}
+
+async function logout(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
 async function boot(){
- const {data:{user}}=await sb.auth.getUser();
- if(!user){loginPanel.classList.remove('hidden');app.classList.add('hidden');return;}
- const {data:profile,error}=await sb.from('profiles').select('is_admin').eq('id',user.id).single();
- if(error||!profile?.is_admin){await sb.auth.signOut();loginMsg.textContent='Compte non autorisé.';return;}
- loginPanel.classList.add('hidden');app.classList.remove('hidden');who.textContent=user.email;
- await loadSettings(); await loadProducts();
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user){
+    loginPanel.classList.remove('hidden');
+    app.classList.add('hidden');
+    return;
+  }
+
+  const {data:profile,error}=await sb.from('profiles')
+    .select('is_admin')
+    .eq('id',user.id)
+    .single();
+
+  if(error || !profile?.is_admin){
+    await sb.auth.signOut();
+    loginMsg.textContent='Compte non autorisé.';
+    return;
+  }
+
+  loginPanel.classList.add('hidden');
+  app.classList.remove('hidden');
+  who.textContent=user.email;
+  await loadSettings();
+  await loadProducts();
 }
+
 async function loadSettings(){
- const {data,error}=await sb.from('settings').select('*').limit(1).maybeSingle();
- if(error||!data)return;
- shop_name.value=data.shop_name||'';contact.value=data.contact||'';subtitle.value=data.subtitle||'';welcome.value=data.welcome||'';delivery.value=data.delivery||'';
+  const {data,error}=await sb.from('settings').select('*').limit(1).maybeSingle();
+  if(error || !data)return;
+  shop_name.value=data.shop_name||'';
+  contact.value=data.contact||'';
+  subtitle.value=data.subtitle||'';
+  welcome.value=data.welcome_text||'';
+  delivery.value=data.delivery_text||'';
 }
+
 async function saveSettings(){
- const {data}=await sb.from('settings').select('id').limit(1).maybeSingle();
- const payload={shop_name:shop_name.value,contact:contact.value,subtitle:subtitle.value,welcome:welcome.value,delivery:delivery.value};
- const res=data?await sb.from('settings').update(payload).eq('id',data.id):await sb.from('settings').insert(payload);
- settingsMsg.textContent=res.error?res.error.message:'Informations enregistrées.';
+  const {data}=await sb.from('settings').select('id').limit(1).maybeSingle();
+
+  const payload={
+    shop_name:shop_name.value,
+    contact:contact.value,
+    subtitle:subtitle.value,
+    welcome_text:welcome.value,
+    delivery_text:delivery.value
+  };
+
+  const res=data
+    ? await sb.from('settings').update(payload).eq('id',data.id)
+    : await sb.from('settings').insert(payload);
+
+  settingsMsg.textContent=res.error
+    ? res.error.message
+    : 'Informations enregistrées.';
 }
+
 async function loadProducts(){
- const {data,error}=await sb.from('products').select('*').order('created_at',{ascending:false});
- if(error){productMsg.textContent=error.message;return} products=data||[];renderList();
+  const {data,error}=await sb.from('products')
+    .select('*')
+    .order('created_at',{ascending:false});
+
+  if(error){
+    productMsg.textContent=error.message;
+    return;
+  }
+
+  products=data||[];
+  renderList();
 }
+
 function renderList(){
- list.innerHTML=products.map(p=>`<div class="product"><b>${esc(p.name)}</b><div class="pill">${esc(p.category||'')} · ${esc(p.weight||'')} · ${Number(p.price||0).toFixed(2)} €</div><div class="status">${p.active?'Visible':'Masqué'}</div><div class="actions"><button class="secondary" onclick='editProduct(${JSON.stringify(p)})'>Modifier</button><button class="danger" onclick="deleteProduct('${p.id}')">Supprimer</button></div></div>`).join('')||'<div class="muted">Aucun produit.</div>';
+  list.innerHTML=products.map(p=>`
+    <div class="product">
+      <b>${esc(p.name)}</b>
+      <div class="pill">${esc(p.category||'')} · ${esc(p.weight||'')} · ${Number(p.price||0).toFixed(2)} €</div>
+      <div class="status">${p.active?'Visible':'Masqué'}</div>
+      <div class="actions">
+        <button class="secondary" onclick='editProduct(${JSON.stringify(p)})'>Modifier</button>
+        <button class="danger" onclick="deleteProduct('${p.id}')">Supprimer</button>
+      </div>
+    </div>
+  `).join('') || '<div class="muted">Aucun produit.</div>';
 }
-function editProduct(p){pid.value=p.id;pname.value=p.name||'';pcat.value=p.category||'';pweight.value=p.weight||'';pprice.value=p.price||0;pemoji.value=p.emoji||'';pimage.value=p.image_url||'';pactive.checked=p.active!==false;scrollTo({top:document.body.scrollHeight/2,behavior:'smooth'});}
-function clearForm(){pid.value='';pname.value='';pcat.value='';pweight.value='';pprice.value='';pemoji.value='📦';pimage.value='';pactive.checked=true;}
+
+function editProduct(p){
+  pid.value=p.id;
+  pname.value=p.name||'';
+  pcat.value=p.category||'';
+  pweight.value=p.weight||'';
+  pprice.value=p.price||0;
+  pemoji.value=p.emoji||'';
+  pimage.value=p.image_url||'';
+  pactive.checked=p.active!==false;
+}
+
+function clearForm(){
+  pid.value='';
+  pname.value='';
+  pcat.value='';
+  pweight.value='';
+  pprice.value='';
+  pemoji.value='📦';
+  pimage.value='';
+  pactive.checked=true;
+}
+
 async function saveProduct(){
- const payload={name:pname.value.trim(),category:pcat.value.trim(),weight:pweight.value.trim(),price:Number(pprice.value||0),emoji:pemoji.value.trim(),image_url:pimage.value.trim(),active:pactive.checked};
- if(!payload.name){productMsg.textContent='Le nom est obligatoire.';return}
- const res=pid.value?await sb.from('products').update(payload).eq('id',pid.value):await sb.from('products').insert(payload);
- productMsg.textContent=res.error?res.error.message:'Produit enregistré.';
- if(!res.error){clearForm();await loadProducts();}
+  const payload={
+    name:pname.value.trim(),
+    category:pcat.value.trim(),
+    weight:pweight.value.trim(),
+    price:Number(pprice.value||0),
+    emoji:pemoji.value.trim(),
+    image_url:pimage.value.trim(),
+    active:pactive.checked
+  };
+
+  if(!payload.name){
+    productMsg.textContent='Le nom est obligatoire.';
+    return;
+  }
+
+  const res=pid.value
+    ? await sb.from('products').update(payload).eq('id',pid.value)
+    : await sb.from('products').insert(payload);
+
+  productMsg.textContent=res.error
+    ? res.error.message
+    : 'Produit enregistré.';
+
+  if(!res.error){
+    clearForm();
+    await loadProducts();
+  }
+}
+
+async function deleteProduct(id){
+  if(!confirm('Supprimer ce produit ?'))return;
+  const {error}=await sb.from('products').delete().eq('id',id);
+  if(error)productMsg.textContent=error.message;
+  else await loadProducts();
+}
+
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
+}
+
+boot();
+</script>
 }
 async function deleteProduct(id){if(!confirm('Supprimer ce produit ?'))return;const {error}=await sb.from('products').delete().eq('id',id);if(error)productMsg.textContent=error.message;else await loadProducts();}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}

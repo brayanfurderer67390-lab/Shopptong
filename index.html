@@ -771,97 +771,7 @@ function closeSummary(){
 }
 
 
-function sendOrder(){
-
-  const name =
-    document.getElementById('customerName').value.trim();
-
-  const phone =
-    document.getElementById('customerPhone').value.trim();
-
-  const address =
-    document.getElementById('customerAddress').value.trim();
-
-  const zone =
-    document.getElementById('customerZone').value.trim();
-
-  const note =
-    document.getElementById('customerNote').value.trim();
-
-
-  let message =
-`Bonjour, je souhaite passer une commande.
-
-👤 Nom : ${name}
-📞 Téléphone : ${phone}
-📍 Adresse : ${address}
-🗺️ Zone : ${zone}`;
-
-  if(note){
-
-    message +=
-`\n📝 Note : ${note}`;
-
-  }
-
-
-  message +=
-`\n\n🛒 COMMANDE :`;
-
-
-  let total = 0;
-
-  Object.values(cart).forEach(item => {
-
-    const product = item.product;
-
-    const lineTotal =
-      Number(product.price) * item.quantity;
-
-    total += lineTotal;
-
-    message +=
-`\n• ${product.name} × ${item.quantity} = ${lineTotal.toFixed(2)} €`;
-
-  });
-
-
-  message +=
-`\n\n💰 TOTAL : ${total.toFixed(2)} €`;
-
-
-  let contact =
-    document.getElementById('contactBtn').href;
-
-  if(!contact || contact === '#'){
-
-    alert('Contact Telegram non configuré.');
-
-    return;
-
-  }
-
-
-  contact =
-    contact.replace(/\/$/, '');
-
-  const telegramUrl =
-    contact + '?text=' + encodeURIComponent(message);
-
-
-  window.location.href = telegramUrl;
-
-}
-
-  }
-
-}
-
-
-loadShop();
-loadProducts();
-updateCart();
-
+async function sendOrder(){
 
   const name =
     document.getElementById('customerName').value.trim();
@@ -902,7 +812,7 @@ updateCart();
   });
 
   const { data, error } = await sb.functions.invoke(
-    'send-order',
+    'clever-endpoint',
     {
       body: {
         name: name,
@@ -932,13 +842,18 @@ updateCart();
 
   alert(
     '✅ Commande envoyée !\n\n' +
-    'Nous allons vous contacter sur Telegram.'
+    'La commande a bien été enregistrée.'
   );
 
   Object.keys(cart).forEach(key => delete cart[key]);
 
   updateCart();
 }
+
+loadShop();
+loadProducts();
+updateCart();
+
 </script>
 
 </body>

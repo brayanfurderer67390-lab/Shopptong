@@ -44,12 +44,8 @@
 <div class="row"><div><label>Emoji</label><input id="pemoji" placeholder="📦"></div><div><label>Photo (URL)</label><input id="pimage" placeholder="https://…"></div></div>
 <label><input id="pactive" type="checkbox" checked style="width:auto"> Produit visible</label><br><br>
 <button class="primary" onclick="saveProduct()">Enregistrer le produit</button>
-<button class="secondary" onclick="clearForm()">Nouveau</button>
-<p id="productMsg" class="status"></p>
 </section>
 
-<section class="panel">
-<h2>Produits</h2><div id="list"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://eioqszrcedwiixicsnij.supabase.co';

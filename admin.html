@@ -1,241 +1,768 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Administration · SHOPPTON-G68</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHOPPTON-G68 · ADMIN</title>
+
 <style>
-:root{--bg:#070907;--card:#101510;--green:#59ff88;--gold:#d9b45b;--muted:#9ba59d;--line:#263128;--danger:#ff6767}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#fff;font-family:Arial,sans-serif}main{max-width:900px;margin:auto;padding:18px}.logo{color:var(--green);font-weight:900;letter-spacing:2px;font-size:22px;margin:8px 0 22px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px}h1,h2{margin-top:0}.muted{color:var(--muted);font-size:13px}input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#0b100d;color:#fff;margin:6px 0 10px}button{border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer}.primary{background:var(--green);color:#041007}.gold{background:var(--gold);color:#171207}.secondary{background:#202a22;color:#fff}.danger{background:#3a1717;color:#ffb0b0}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px}.hidden{display:none!important}.product{border-top:1px solid var(--line);padding:14px 0}.product:first-child{border-top:0}.actions{display:flex;gap:7px;flex-wrap:wrap}.pill{font-size:11px;color:var(--gold)}.status{font-size:12px;color:var(--muted)}@media(max-width:600px){.row{grid-template-columns:1fr}}
+body{
+  font-family:Arial,sans-serif;
+  background:#111;
+  color:#fff;
+  margin:0;
+  padding:20px;
+}
+.wrap{
+  max-width:700px;
+  margin:auto;
+}
+h1{
+  margin-bottom:5px;
+}
+.panel{
+  background:#1c1c1c;
+  padding:20px;
+  border-radius:15px;
+  margin-bottom:20px;
+}
+input,textarea{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px;
+  margin:7px 0 12px;
+  border-radius:8px;
+  border:1px solid #444;
+  background:#111;
+  color:#fff;
+}
+button{
+  padding:12px 16px;
+  border:0;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+  margin:4px;
+}
+.primary{
+  background:#fff;
+  color:#000;
+}
+.secondary{
+  background:#333;
+  color:#fff;
+}
+.danger{
+  background:#b00020;
+  color:#fff;
+}
+.hidden{
+  display:none;
+}
+.muted{
+  color:#aaa;
+}
+.product{
+  border:1px solid #333;
+  padding:15px;
+  border-radius:12px;
+  margin-top:12px;
+}
+.pill{
+  color:#aaa;
+  margin-top:5px;
+}
+.status{
+  margin-top:8px;
+}
+.actions{
+  margin-top:10px;
+}
+.msg{
+  margin-top:10px;
+  color:#ccc;
+}
+label{
+  display:block;
+  margin-top:8px;
+  font-weight:bold;
+}
+hr{
+  border:0;
+  border-top:1px solid #333;
+  margin:20px 0;
+}
 </style>
 </head>
+
 <body>
-<main>
-<div class="logo">SHOPPTON-G68 · ADMIN</div>
 
-<section id="loginPanel" class="panel">
-<h1>Connexion administrateur</h1>
-<p class="muted">Connexion sécurisée par Supabase Auth. Aucun mot de passe n'est stocké dans cette page.</p>
-<label>Email</label><input id="email" type="email" autocomplete="email" placeholder="admin@exemple.fr">
-<label>Mot de passe</label><input id="password" type="password" autocomplete="current-password" placeholder="••••••••">
-<button class="primary" onclick="login()">Se connecter</button>
-<p id="loginMsg" class="status"></p>
+<div class="wrap">
+
+<h1>SHOPPTON-G68 · ADMIN</h1>
+<p class="muted">Gestion de la boutique</p>
+
+<!-- CONNEXION -->
+<section class="panel" id="loginPanel">
+
+<h2>Connexion</h2>
+
+<label>Email</label>
+<input id="email" type="email" placeholder="Ton adresse email">
+
+<label>Mot de passe</label>
+<input id="password" type="password" placeholder="Ton mot de passe">
+
+<button class="primary" onclick="login()">
+Se connecter
+</button>
+
+<div class="msg" id="loginMsg"></div>
+
 </section>
 
-<section id="app" class="hidden">
-<div class="panel top"><div><h1>Tableau de bord</h1><div id="who" class="muted"></div></div><button class="secondary" onclick="logout()">Déconnexion</button></div>
 
-<section class="panel">
+<!-- ADMIN -->
+<section class="panel hidden" id="app">
+
+<div>
+Connecté en tant que :
+<b id="who"></b>
+</div>
+
+<button class="danger" onclick="logout()">
+Se déconnecter
+</button>
+
+<hr>
+
 <h2>Informations de la boutique</h2>
-<div class="row"><div><label>Nom</label><input id="shop_name"></div><div><label>Contact Telegram</label><input id="contact"></div></div>
-<label>Sous-titre</label><input id="subtitle">
-<label>Message d'accueil</label><textarea id="welcome"></textarea>
-<label>Secteur de livraison</label><input id="delivery">
-<button class="gold" onclick="saveSettings()">Enregistrer les informations</button>
-<p id="settingsMsg" class="status"></p>
+
+<label>Nom</label>
+<input id="shop_name">
+
+<label>Contact</label>
+<input id="contact">
+
+<label>Sous-titre</label>
+<input id="subtitle">
+
+<label>Message d'accueil</label>
+<textarea id="welcome"></textarea>
+
+<label>Livraison</label>
+<textarea id="delivery"></textarea>
+
+<button class="primary" onclick="saveSettings()">
+Enregistrer
+</button>
+
+<div class="msg" id="settingsMsg"></div>
+
 </section>
 
-<section class="panel">
-<h2>Ajouter / modifier un produit</h2>
+
+<!-- PRODUITS -->
+<section class="panel hidden" id="productPanel">
+
+<h2>Produits</h2>
+
 <input id="pid" type="hidden">
-<div class="row"><div><label>Nom</label><input id="pname"></div><div><label>Catégorie</label><input id="pcat" placeholder="Premium, Frozen…"></div></div>
-<div class="row"><div><label>Poids / format</label><input id="pweight" placeholder="1 g"></div><div><label>Prix (€)</label><input id="pprice" type="number" step="0.01"></div></div>
-<div class="row"><div><label>Emoji</label><input id="pemoji" placeholder="📦"></div><div><label>Photo (URL)</label><input id="pimage" placeholder="https://…"></div></div>
-<label><input id="pactive" type="checkbox" checked style="width:auto"> Produit visible</label><br><br>
-<button class="primary" onclick="saveProduct()">Enregistrer le produit</button>
+
+<label>Nom du produit</label>
+<input id="pname" placeholder="Ex : Produit 1">
+
+<label>Catégorie</label>
+<input id="pcat" placeholder="Ex : CBD">
+
+<label>Poids / quantité</label>
+<input id="pweight" placeholder="Ex : 10g">
+
+<label>Prix</label>
+<input id="pprice" type="number" step="0.01" placeholder="0">
+
+<label>Emoji</label>
+<input id="pemoji" placeholder="📦">
+
+<label>URL de l'image</label>
+<input id="pimage" placeholder="https://...">
+
+<label>
+<input id="pactive" type="checkbox" checked>
+ Produit visible
+</label>
+
+<br>
+
+<button class="primary" onclick="saveProduct()">
+Enregistrer le produit
+</button>
+
+<button class="secondary" onclick="clearForm()">
+Nouveau produit
+</button>
+
+<div class="msg" id="productMsg"></div>
+
+<hr>
+
+<div id="list"></div>
+
 </section>
 
+</div>
+
+
+<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-const SUPABASE_URL='https://eioqszrcedwiixicsnij.supabase.co';
-const SUPABASE_ANON_KEY='sb_publishable_UVYmcUeEQtuJwKs0awaFKQ_SJd_mqJX
+
+// ================================
+// CONFIGURATION SUPABASE
+// ================================
+
+const SUPABASE_URL =
+'https://eioqszrcedwiixicsnij.supabase.co';
+
+const SUPABASE_ANON_KEY =
+'sb_publishable_UVYmcUeEQtuJwKs0awaFKQ_SJd_mqJX
 
 
 ';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-let products=[];
-  
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-let products=[];
+const sb = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+
+// ================================
+// ELEMENTS
+// ================================
+
+const $ = (id) => document.getElementById(id);
+
+
+// ================================
+// CONNEXION
+// ================================
 
 async function login(){
-  const msg=document.getElementById('loginMsg');
-  msg.textContent='Connexion…';
-  const {error}=await sb.auth.signInWithPassword({
-    email:document.getElementById('email').value,
-    password:document.getElementById('password').value
-  });
-  msg.textContent=error ? error.message : '';
-  if(!error) await boot();
-}
 
-async function logout(){
-  await sb.auth.signOut();
-  location.reload();
-}
+  const msg = $('loginMsg');
 
-async function boot(){
-  const {data:{user}}=await sb.auth.getUser();
-  if(!user){
-    loginPanel.classList.remove('hidden');
-    app.classList.add('hidden');
+  msg.textContent = 'Connexion…';
+
+  const email = $('email').value.trim();
+  const password = $('password').value;
+
+  if(!email || !password){
+    msg.textContent = 'Remplis les deux champs.';
     return;
   }
 
-  const {data:profile,error}=await sb.from('profiles')
+  const { error } =
+    await sb.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+  if(error){
+    msg.textContent = error.message;
+    return;
+  }
+
+  msg.textContent = '';
+
+  await boot();
+}
+
+
+// ================================
+// DECONNEXION
+// ================================
+
+async function logout(){
+
+  await sb.auth.signOut();
+
+  location.reload();
+
+}
+
+
+// ================================
+// DEMARRAGE
+// ================================
+
+async function boot(){
+
+  const {
+    data:{user}
+  } = await sb.auth.getUser();
+
+  if(!user){
+
+    $('loginPanel').classList.remove('hidden');
+    $('app').classList.add('hidden');
+    $('productPanel').classList.add('hidden');
+
+    return;
+  }
+
+
+  const {
+    data:profile,
+    error
+  } =
+  await sb
+    .from('profiles')
     .select('is_admin')
     .eq('id',user.id)
     .single();
 
-  if(error || !profile?.is_admin){
+
+  if(error || !profile || !profile.is_admin){
+
     await sb.auth.signOut();
-    loginMsg.textContent='Compte non autorisé.';
+
+    $('loginMsg').textContent =
+      'Compte non autorisé.';
+
     return;
   }
 
-  loginPanel.classList.add('hidden');
-  app.classList.remove('hidden');
-  who.textContent=user.email;
+
+  $('loginPanel').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('productPanel').classList.remove('hidden');
+
+  $('who').textContent = user.email;
+
+
   await loadSettings();
   await loadProducts();
+
 }
+
+
+// ================================
+// PARAMETRES
+// ================================
 
 async function loadSettings(){
-  const {data,error}=await sb.from('settings').select('*').limit(1).maybeSingle();
-  if(error || !data)return;
-  shop_name.value=data.shop_name||'';
-  contact.value=data.contact||'';
-  subtitle.value=data.subtitle||'';
-  welcome.value=data.welcome_text||'';
-  delivery.value=data.delivery_text||'';
-}
 
-async function saveSettings(){
-  const {data}=await sb.from('settings').select('id').limit(1).maybeSingle();
-
-  const payload={
-    shop_name:shop_name.value,
-    contact:contact.value,
-    subtitle:subtitle.value,
-    welcome_text:welcome.value,
-    delivery_text:delivery.value
-  };
-
-  const res=data
-    ? await sb.from('settings').update(payload).eq('id',data.id)
-    : await sb.from('settings').insert(payload);
-
-  settingsMsg.textContent=res.error
-    ? res.error.message
-    : 'Informations enregistrées.';
-}
-
-async function loadProducts(){
-  const {data,error}=await sb.from('products')
+  const {
+    data,
+    error
+  } =
+  await sb
+    .from('settings')
     .select('*')
-    .order('created_at',{ascending:false});
+    .limit(1)
+    .maybeSingle();
+
 
   if(error){
-    productMsg.textContent=error.message;
+
+    $('settingsMsg').textContent =
+      error.message;
+
     return;
   }
 
-  products=data||[];
-  renderList();
+
+  if(!data) return;
+
+
+  $('shop_name').value =
+    data.shop_name || '';
+
+  $('contact').value =
+    data.contact || '';
+
+  $('subtitle').value =
+    data.subtitle || '';
+
+  $('welcome').value =
+    data.welcome_text || '';
+
+  $('delivery').value =
+    data.delivery_text || '';
+
 }
 
-function renderList(){
-  list.innerHTML=products.map(p=>`
-    <div class="product">
-      <b>${esc(p.name)}</b>
-      <div class="pill">${esc(p.category||'')} · ${esc(p.weight||'')} · ${Number(p.price||0).toFixed(2)} €</div>
-      <div class="status">${p.active?'Visible':'Masqué'}</div>
-      <div class="actions">
-        <button class="secondary" onclick='editProduct(${JSON.stringify(p)})'>Modifier</button>
-        <button class="danger" onclick="deleteProduct('${p.id}')">Supprimer</button>
-      </div>
-    </div>
-  `).join('') || '<div class="muted">Aucun produit.</div>';
-}
 
-function editProduct(p){
-  pid.value=p.id;
-  pname.value=p.name||'';
-  pcat.value=p.category||'';
-  pweight.value=p.weight||'';
-  pprice.value=p.price||0;
-  pemoji.value=p.emoji||'';
-  pimage.value=p.image_url||'';
-  pactive.checked=p.active!==false;
-}
+// ================================
+// SAUVEGARDER PARAMETRES
+// ================================
 
-function clearForm(){
-  pid.value='';
-  pname.value='';
-  pcat.value='';
-  pweight.value='';
-  pprice.value='';
-  pemoji.value='📦';
-  pimage.value='';
-  pactive.checked=true;
-}
+async function saveSettings(){
 
-async function saveProduct(){
-  const payload={
-    name:pname.value.trim(),
-    category:pcat.value.trim(),
-    weight:pweight.value.trim(),
-    price:Number(pprice.value||0),
-    emoji:pemoji.value.trim(),
-    image_url:pimage.value.trim(),
-    active:pactive.checked
+  $('settingsMsg').textContent =
+    'Enregistrement…';
+
+
+  const {
+    data,
+    error:selectError
+  } =
+  await sb
+    .from('settings')
+    .select('id')
+    .limit(1)
+    .maybeSingle();
+
+
+  if(selectError){
+
+    $('settingsMsg').textContent =
+      selectError.message;
+
+    return;
+  }
+
+
+  const payload = {
+
+    shop_name:
+      $('shop_name').value.trim(),
+
+    contact:
+      $('contact').value.trim(),
+
+    subtitle:
+      $('subtitle').value.trim(),
+
+    welcome_text:
+      $('welcome').value.trim(),
+
+    delivery_text:
+      $('delivery').value.trim()
+
   };
 
-  if(!payload.name){
-    productMsg.textContent='Le nom est obligatoire.';
+
+  let result;
+
+
+  if(data){
+
+    result =
+      await sb
+        .from('settings')
+        .update(payload)
+        .eq('id',data.id);
+
+  }else{
+
+    result =
+      await sb
+        .from('settings')
+        .insert(payload);
+
+  }
+
+
+  $('settingsMsg').textContent =
+    result.error
+      ? result.error.message
+      : 'Informations enregistrées ✅';
+
+}
+
+
+// ================================
+// PRODUITS
+// ================================
+
+let products = [];
+
+
+async function loadProducts(){
+
+  const {
+    data,
+    error
+  } =
+  await sb
+    .from('products')
+    .select('*')
+    .order('created_at',{
+      ascending:false
+    });
+
+
+  if(error){
+
+    $('productMsg').textContent =
+      error.message;
+
     return;
   }
 
-  const res=pid.value
-    ? await sb.from('products').update(payload).eq('id',pid.value)
-    : await sb.from('products').insert(payload);
 
-  productMsg.textContent=res.error
-    ? res.error.message
-    : 'Produit enregistré.';
+  products = data || [];
 
-  if(!res.error){
-    clearForm();
-    await loadProducts();
-  }
+  renderList();
+
 }
+
+
+// ================================
+// AFFICHAGE PRODUITS
+// ================================
+
+function renderList(){
+
+  $('list').innerHTML =
+    products.map(p => `
+
+      <div class="product">
+
+        <b>${esc(p.name)}</b>
+
+        <div class="pill">
+          ${esc(p.category || '')}
+          ·
+          ${esc(p.weight || '')}
+          ·
+          ${Number(p.price || 0).toFixed(2)} €
+        </div>
+
+        <div class="status">
+          ${p.active ? 'Visible ✅' : 'Masqué'}
+        </div>
+
+        <div class="actions">
+
+          <button
+            class="secondary"
+            onclick='editProduct(${JSON.stringify(p)})'>
+            Modifier
+          </button>
+
+          <button
+            class="danger"
+            onclick="deleteProduct('${p.id}')">
+            Supprimer
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join('')
+
+    ||
+    '<div class="muted">Aucun produit.</div>';
+
+}
+
+
+// ================================
+// MODIFIER PRODUIT
+// ================================
+
+function editProduct(p){
+
+  $('pid').value =
+    p.id || '';
+
+  $('pname').value =
+    p.name || '';
+
+  $('pcat').value =
+    p.category || '';
+
+  $('pweight').value =
+    p.weight || '';
+
+  $('pprice').value =
+    p.price || 0;
+
+  $('pemoji').value =
+    p.emoji || '📦';
+
+  $('pimage').value =
+    p.image_url || '';
+
+  $('pactive').checked =
+    p.active !== false;
+
+
+  window.scrollTo({
+    top:document.body.scrollHeight / 2,
+    behavior:'smooth'
+  });
+
+}
+
+
+// ================================
+// NOUVEAU PRODUIT
+// ================================
+
+function clearForm(){
+
+  $('pid').value = '';
+
+  $('pname').value = '';
+
+  $('pcat').value = '';
+
+  $('pweight').value = '';
+
+  $('pprice').value = '';
+
+  $('pemoji').value = '📦';
+
+  $('pimage').value = '';
+
+  $('pactive').checked = true;
+
+  $('productMsg').textContent = '';
+
+}
+
+
+// ================================
+// SAUVEGARDER PRODUIT
+// ================================
+
+async function saveProduct(){
+
+  const payload = {
+
+    name:
+      $('pname').value.trim(),
+
+    category:
+      $('pcat').value.trim(),
+
+    weight:
+      $('pweight').value.trim(),
+
+    price:
+      Number($('pprice').value || 0),
+
+    emoji:
+      $('pemoji').value.trim(),
+
+    image_url:
+      $('pimage').value.trim(),
+
+    active:
+      $('pactive').checked
+
+  };
+
+
+  if(!payload.name){
+
+    $('productMsg').textContent =
+      'Le nom du produit est obligatoire.';
+
+    return;
+  }
+
+
+  let result;
+
+
+  if($('pid').value){
+
+    result =
+      await sb
+        .from('products')
+        .update(payload)
+        .eq('id',$('pid').value);
+
+  }else{
+
+    result =
+      await sb
+        .from('products')
+        .insert(payload);
+
+  }
+
+
+  $('productMsg').textContent =
+    result.error
+      ? result.error.message
+      : 'Produit enregistré ✅';
+
+
+  if(!result.error){
+
+    clearForm();
+
+    await loadProducts();
+
+  }
+
+}
+
+
+// ================================
+// SUPPRIMER PRODUIT
+// ================================
 
 async function deleteProduct(id){
-  if(!confirm('Supprimer ce produit ?'))return;
-  const {error}=await sb.from('products').delete().eq('id',id);
-  if(error)productMsg.textContent=error.message;
-  else await loadProducts();
+
+  if(!confirm('Supprimer ce produit ?')) return;
+
+
+  const { error } =
+    await sb
+      .from('products')
+      .delete()
+      .eq('id',id);
+
+
+  if(error){
+
+    $('productMsg').textContent =
+      error.message;
+
+    return;
+  }
+
+
+  await loadProducts();
+
 }
+
+
+// ================================
+// SECURITE AFFICHAGE
+// ================================
 
 function esc(s){
-  return String(s??'').replace(/[&<>"']/g,c=>({
-    '&':'&amp;',
-    '<':'&lt;',
-    '>':'&gt;',
-    '"':'&quot;',
-    "'":'&#39;'
-  }[c]));
+
+  return String(s ?? '')
+    .replace(/[&<>"']/g,c => ({
+
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+
+    }[c]));
+
 }
 
+
+// ================================
+// LANCEMENT
+// ================================
+
 boot();
+
 </script>
-}
-async function deleteProduct(id){if(!confirm('Supprimer ce produit ?'))return;const {error}=await sb.from('products').delete().eq('id',id);if(error)productMsg.textContent=error.message;else await loadProducts();}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-sb.auth.onAuthStateChange(()=>{});
-</script>
-</script>
+
 </body>
 </html>

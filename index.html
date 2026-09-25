@@ -24,15 +24,8 @@ header{
   text-align:center;
 }
 
-header h1{
-  margin:0;
-  font-size:28px;
-}
-
-header p{
-  margin:8px 0 0;
-  color:#ccc;
-}
+header h1{margin:0;font-size:28px}
+header p{margin:8px 0 0;color:#ccc}
 
 .container{
   max-width:700px;
@@ -68,13 +61,8 @@ header p{
   background:#eee;
 }
 
-.product-info{
-  padding:14px;
-}
-
-.product h3{
-  margin:0 0 8px;
-}
+.product-info{padding:14px}
+.product h3{margin:0 0 8px}
 
 .price{
   font-size:20px;
@@ -114,14 +102,14 @@ button{
 }
 
 .cart-count{
-  background:#fff;
+  background:white;
   color:#111;
   border-radius:50%;
   padding:3px 7px;
   margin-left:5px;
 }
 
-.cart{
+.modal{
   display:none;
   position:fixed;
   inset:0;
@@ -130,13 +118,13 @@ button{
   padding:20px;
 }
 
-.cart-box{
+.box{
   background:white;
   max-width:500px;
-  margin:30px auto;
+  margin:20px auto;
   border-radius:20px;
   padding:20px;
-  max-height:85vh;
+  max-height:90vh;
   overflow:auto;
 }
 
@@ -165,17 +153,52 @@ button{
   margin:20px 0;
 }
 
-.checkout{
+.primary{
   width:100%;
   background:#229ED9;
   color:white;
   font-size:16px;
 }
 
-.close{
+.secondary{
   width:100%;
   margin-top:10px;
   background:#eee;
+}
+
+.form-group{
+  margin-bottom:15px;
+}
+
+.form-group label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+.form-group input,
+.form-group textarea{
+  width:100%;
+  padding:13px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  font-size:16px;
+}
+
+.form-group textarea{
+  min-height:90px;
+  resize:vertical;
+}
+
+.summary{
+  background:#f5f5f5;
+  border-radius:14px;
+  padding:15px;
+  margin-bottom:15px;
+}
+
+.summary p{
+  margin:8px 0;
 }
 
 .contact{
@@ -197,13 +220,8 @@ button{
 }
 
 @media(max-width:450px){
-  .products{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .product img{
-    height:125px;
-  }
+  .products{grid-template-columns:1fr 1fr}
+  .product img{height:125px}
 }
 </style>
 </head>
@@ -229,11 +247,8 @@ button{
     <div class="empty">Chargement...</div>
   </div>
 
-  <a id="contactBtn"
-     class="contact"
-     href="#"
-     target="_blank">
-     💬 Nous contacter sur Telegram
+  <a id="contactBtn" class="contact" href="#" target="_blank">
+    💬 Nous contacter sur Telegram
   </a>
 
 </div>
@@ -243,9 +258,12 @@ button{
   <span id="cartCount" class="cart-count">0</span>
 </button>
 
-<div id="cart" class="cart">
 
-  <div class="cart-box">
+<!-- PANIER -->
+
+<div id="cartModal" class="modal">
+
+  <div class="box">
 
     <h2>🛒 Mon panier</h2>
 
@@ -255,11 +273,11 @@ button{
       Total : 0.00 €
     </div>
 
-    <button class="checkout" onclick="sendOrder()">
-      📩 Envoyer la commande sur Telegram
+    <button class="primary" onclick="openCheckout()">
+      📝 Passer la commande
     </button>
 
-    <button class="close" onclick="closeCart()">
+    <button class="secondary" onclick="closeCart()">
       Fermer
     </button>
 
@@ -267,22 +285,103 @@ button{
 
 </div>
 
+
+<!-- FORMULAIRE -->
+
+<div id="checkoutModal" class="modal">
+
+  <div class="box">
+
+    <h2>📝 Informations de livraison</h2>
+
+    <div class="form-group">
+      <label>Nom / prénom</label>
+      <input id="customerName" type="text" placeholder="Votre nom">
+    </div>
+
+    <div class="form-group">
+      <label>Téléphone</label>
+      <input id="customerPhone" type="tel" placeholder="06 00 00 00 00">
+    </div>
+
+    <div class="form-group">
+      <label>Adresse de livraison</label>
+      <textarea id="customerAddress"
+        placeholder="Adresse complète"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Zone de livraison</label>
+      <input id="customerZone"
+        type="text"
+        placeholder="Votre ville / secteur">
+    </div>
+
+    <div class="form-group">
+      <label>Note (facultatif)</label>
+      <textarea id="customerNote"
+        placeholder="Information supplémentaire"></textarea>
+    </div>
+
+    <button class="primary" onclick="showSummary()">
+      Continuer
+    </button>
+
+    <button class="secondary" onclick="closeCheckout()">
+      Retour
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- RECAPITULATIF -->
+
+<div id="summaryModal" class="modal">
+
+  <div class="box">
+
+    <h2>📋 Récapitulatif</h2>
+
+    <div id="summaryContent" class="summary"></div>
+
+    <button class="primary" onclick="sendOrder()">
+      💬 Envoyer la commande sur Telegram
+    </button>
+
+    <button class="secondary" onclick="closeSummary()">
+      Modifier
+    </button>
+
+  </div>
+
+</div>
+
+
 <script>
 
 const SUPABASE_URL =
 'https://eioqszrcedwiixicsnij.supabase.co';
 
+
+/*
+ IMPORTANT :
+ GARDE ICI TA VRAIE CLÉ sb_publishable_...
+ que tu utilises actuellement.
+ Ne mets jamais la clé service_role.
+*/
+
 const SUPABASE_ANON_KEY = `
-sb_publishable_UVYmcUeEQtuJwKs0awaFKQ_SJd_mqJX
-
-
-
+COLLE_TA_CLE_PUBLISHABLE_ICI
 `.replace(/\s/g,'');
+
 
 const sb = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
+
 
 let products = [];
 let cart = {};
@@ -357,7 +456,7 @@ async function loadProducts(){
   if(!data || data.length === 0){
 
     container.innerHTML =
-      '<div class="empty">Aucun produit disponible pour le moment.</div>';
+      '<div class="empty">Aucun produit disponible.</div>';
 
     return;
   }
@@ -421,9 +520,7 @@ async function loadProducts(){
     `;
 
     card.querySelector('.add').onclick = () => {
-
       addToCart(product);
-
     };
 
     container.appendChild(card);
@@ -449,16 +546,6 @@ function addToCart(product){
   }
 
   updateCart();
-
-}
-
-
-function removeFromCart(id){
-
-  delete cart[id];
-
-  updateCart();
-
 }
 
 
@@ -468,14 +555,10 @@ function changeQuantity(id,change){
 
   cart[id].quantity += change;
 
-  if(cart[id].quantity <= 0){
-
+  if(cart[id].quantity <= 0)
     delete cart[id];
 
-  }
-
   updateCart();
-
 }
 
 
@@ -521,13 +604,9 @@ function updateCart(){
       div.innerHTML = `
 
         <div>
-
           <strong>${product.name}</strong>
-
           <br>
-
           ${Number(product.price).toFixed(2)} €
-
         </div>
 
         <div class="quantity">
@@ -560,54 +639,197 @@ function updateCart(){
 
 function openCart(){
 
-  document.getElementById('cart').style.display =
+  document.getElementById('cartModal').style.display =
     'block';
 
   updateCart();
-
 }
 
 
 function closeCart(){
 
-  document.getElementById('cart').style.display =
+  document.getElementById('cartModal').style.display =
     'none';
 
 }
 
 
-function sendOrder(){
+function openCheckout(){
 
-  const items =
-    Object.values(cart);
-
-  if(items.length === 0){
+  if(Object.keys(cart).length === 0){
 
     alert('Votre panier est vide.');
 
     return;
+  }
+
+  closeCart();
+
+  document.getElementById('checkoutModal').style.display =
+    'block';
+}
+
+
+function closeCheckout(){
+
+  document.getElementById('checkoutModal').style.display =
+    'none';
+
+}
+
+
+function showSummary(){
+
+  const name =
+    document.getElementById('customerName').value.trim();
+
+  const phone =
+    document.getElementById('customerPhone').value.trim();
+
+  const address =
+    document.getElementById('customerAddress').value.trim();
+
+  const zone =
+    document.getElementById('customerZone').value.trim();
+
+  const note =
+    document.getElementById('customerNote').value.trim();
+
+
+  if(!name || !phone || !address || !zone){
+
+    alert(
+      'Merci de remplir le nom, téléphone, adresse et zone de livraison.'
+    );
+
+    return;
+  }
+
+
+  let html = `
+    <p><strong>👤 Nom :</strong> ${name}</p>
+    <p><strong>📞 Téléphone :</strong> ${phone}</p>
+    <p><strong>📍 Adresse :</strong> ${address}</p>
+    <p><strong>🗺️ Zone :</strong> ${zone}</p>
+  `;
+
+  if(note){
+
+    html +=
+      `<p><strong>📝 Note :</strong> ${note}</p>`;
 
   }
 
-  let message =
-    'Bonjour, je souhaite passer cette commande :%0A%0A';
 
   let total = 0;
 
-  items.forEach(item => {
+  html += '<hr>';
+
+  Object.values(cart).forEach(item => {
 
     const product = item.product;
 
     const lineTotal =
-      Number(product.price) *
-      item.quantity;
+      Number(product.price) * item.quantity;
+
+    total += lineTotal;
+
+    html += `
+      <p>
+        ${product.name} × ${item.quantity}
+        — ${lineTotal.toFixed(2)} €
+      </p>
+    `;
+
+  });
+
+
+  html += `
+    <hr>
+    <p><strong>💰 Total : ${total.toFixed(2)} €</strong></p>
+  `;
+
+
+  document.getElementById('summaryContent').innerHTML =
+    html;
+
+  closeCheckout();
+
+  document.getElementById('summaryModal').style.display =
+    'block';
+}
+
+
+function closeSummary(){
+
+  document.getElementById('summaryModal').style.display =
+    'none';
+
+  document.getElementById('checkoutModal').style.display =
+    'block';
+}
+
+
+function sendOrder(){
+
+  const name =
+    document.getElementById('customerName').value.trim();
+
+  const phone =
+    document.getElementById('customerPhone').value.trim();
+
+  const address =
+    document.getElementById('customerAddress').value.trim();
+
+  const zone =
+    document.getElementById('customerZone').value.trim();
+
+  const note =
+    document.getElementById('customerNote').value.trim();
+
+
+  let message =
+    'Bonjour, je souhaite passer une commande.%0A%0A';
+
+  message +=
+    '👤 Nom : ' + name + '%0A';
+
+  message +=
+    '📞 Téléphone : ' + phone + '%0A';
+
+  message +=
+    '📍 Adresse : ' + address + '%0A';
+
+  message +=
+    '🗺️ Zone : ' + zone + '%0A';
+
+
+  if(note){
+
+    message +=
+      '📝 Note : ' + note + '%0A';
+
+  }
+
+
+  message += '%0A🛒 COMMANDE :%0A';
+
+
+  let total = 0;
+
+  Object.values(cart).forEach(item => {
+
+    const product = item.product;
+
+    const lineTotal =
+      Number(product.price) * item.quantity;
 
     total += lineTotal;
 
     message +=
       '• ' +
       product.name +
-      ' x' +
+      ' × ' +
       item.quantity +
       ' = ' +
       lineTotal.toFixed(2) +
@@ -615,25 +837,22 @@ function sendOrder(){
 
   });
 
+
   message +=
-    '%0ATotal : ' +
+    '%0A💰 TOTAL : ' +
     total.toFixed(2) +
     ' €';
 
+
   const contact =
     document.getElementById('contactBtn').href;
+
 
   if(contact && contact !== '#'){
 
     window.open(
       contact + '?text=' + message,
       '_blank'
-    );
-
-  }else{
-
-    alert(
-      decodeURIComponent(message)
     );
 
   }

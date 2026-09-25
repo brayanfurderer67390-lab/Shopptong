@@ -871,7 +871,85 @@ function sendOrder(){
 loadShop();
 loadProducts();
 updateCart();
+// Nouvelle version de sendOrder
+async function sendOrder(){
 
+  const name =
+    document.getElementById('customerName').value.trim();
+
+  const phone =
+    document.getElementById('customerPhone').value.trim();
+
+  const address =
+    document.getElementById('customerAddress').value.trim();
+
+  const zone =
+    document.getElementById('customerZone').value.trim();
+
+  const note =
+    document.getElementById('customerNote').value.trim();
+
+  if(!name || !phone || !address){
+    alert('Merci de remplir votre nom, téléphone et adresse.');
+    return;
+  }
+
+  const items = Object.values(cart).map(item => ({
+    product_id: item.product.id || null,
+    name: item.product.name,
+    price: Number(item.product.price) || 0,
+    quantity: Number(item.quantity) || 1
+  }));
+
+  if(!items.length){
+    alert('Votre panier est vide.');
+    return;
+  }
+
+  let total = 0;
+
+  items.forEach(item => {
+    total += item.price * item.quantity;
+  });
+
+  const { data, error } = await sb.functions.invoke(
+    'send-order',
+    {
+      body: {
+        name: name,
+        phone: phone,
+        address: address,
+        zone: zone,
+        note: note,
+        items: items,
+        total: total
+      }
+    }
+  );
+
+  if(error){
+    console.error(error);
+    alert('Erreur lors de l’envoi de la commande.');
+    return;
+  }
+
+  if(!data || !data.success){
+    alert(
+      data?.error ||
+      'Impossible d’envoyer la commande.'
+    );
+    return;
+  }
+
+  alert(
+    '✅ Commande envoyée !\n\n' +
+    'Nous allons vous contacter sur Telegram.'
+  );
+
+  Object.keys(cart).forEach(key => delete cart[key]);
+
+  updateCart();
+}
 </script>
 
 </body>

@@ -9,20 +9,30 @@
 
 <style>
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:Arial,sans-serif;
   background:#f5f5f5;
   color:#111;
 }
+
 header{
   background:#111;
   color:white;
   padding:22px 18px;
   text-align:center;
 }
-header h1{margin:0;font-size:28px}
-header p{margin:8px 0 0;color:#ccc}
+
+header h1{
+  margin:0;
+  font-size:28px;
+}
+
+header p{
+  margin:8px 0 0;
+  color:#ccc;
+}
 
 .container{
   max-width:700px;
@@ -58,12 +68,19 @@ header p{margin:8px 0 0;color:#ccc}
   background:#eee;
 }
 
-.product-info{padding:14px}
-.product h3{margin:0 0 8px}
+.product-info{
+  padding:14px;
+}
+
+.product h3{
+  margin:0 0 8px;
+}
+
 .price{
   font-size:20px;
   font-weight:bold;
 }
+
 .weight{
   color:#777;
   font-size:14px;
@@ -78,10 +95,87 @@ button{
   cursor:pointer;
 }
 
-.order{
+.add{
   width:100%;
   background:#111;
   color:white;
+}
+
+.cart-button{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  background:#111;
+  color:white;
+  padding:15px 20px;
+  border-radius:50px;
+  box-shadow:0 4px 15px #0004;
+  z-index:20;
+}
+
+.cart-count{
+  background:#fff;
+  color:#111;
+  border-radius:50%;
+  padding:3px 7px;
+  margin-left:5px;
+}
+
+.cart{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:#0008;
+  z-index:30;
+  padding:20px;
+}
+
+.cart-box{
+  background:white;
+  max-width:500px;
+  margin:30px auto;
+  border-radius:20px;
+  padding:20px;
+  max-height:85vh;
+  overflow:auto;
+}
+
+.cart-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid #ddd;
+  padding:12px 0;
+}
+
+.quantity{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.quantity button{
+  background:#eee;
+  padding:7px 11px;
+}
+
+.total{
+  font-size:22px;
+  font-weight:bold;
+  margin:20px 0;
+}
+
+.checkout{
+  width:100%;
+  background:#229ED9;
+  color:white;
+  font-size:16px;
+}
+
+.close{
+  width:100%;
+  margin-top:10px;
+  background:#eee;
 }
 
 .contact{
@@ -103,8 +197,13 @@ button{
 }
 
 @media(max-width:450px){
-  .products{grid-template-columns:1fr 1fr}
-  .product img{height:125px}
+  .products{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .product img{
+    height:125px;
+  }
 }
 </style>
 </head>
@@ -134,8 +233,37 @@ button{
      class="contact"
      href="#"
      target="_blank">
-     💬 Commander sur Telegram
+     💬 Nous contacter sur Telegram
   </a>
+
+</div>
+
+<button class="cart-button" onclick="openCart()">
+  🛒 Panier
+  <span id="cartCount" class="cart-count">0</span>
+</button>
+
+<div id="cart" class="cart">
+
+  <div class="cart-box">
+
+    <h2>🛒 Mon panier</h2>
+
+    <div id="cartItems"></div>
+
+    <div id="cartTotal" class="total">
+      Total : 0.00 €
+    </div>
+
+    <button class="checkout" onclick="sendOrder()">
+      📩 Envoyer la commande sur Telegram
+    </button>
+
+    <button class="close" onclick="closeCart()">
+      Fermer
+    </button>
+
+  </div>
 
 </div>
 
@@ -145,10 +273,7 @@ const SUPABASE_URL =
 'https://eioqszrcedwiixicsnij.supabase.co';
 
 const SUPABASE_ANON_KEY = `
-sb_publishable_UVYmcUeEQtuJwKs0awaFKQ_SJd_mqJX
-
-
-
+COLLE_TA_CLE_PUBLISHABLE_ICI
 `.replace(/\s/g,'');
 
 const sb = supabase.createClient(
@@ -156,10 +281,13 @@ const sb = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
+let products = [];
+let cart = {};
+
 
 async function loadShop(){
 
-  const {data, error} = await sb
+  const {data,error} = await sb
     .from('settings')
     .select('*')
     .limit(1)
@@ -173,16 +301,20 @@ async function loadShop(){
   if(data){
 
     if(data.shop_name)
-      document.getElementById('shopName').textContent = data.shop_name;
+      document.getElementById('shopName').textContent =
+        data.shop_name;
 
     if(data.subtitle)
-      document.getElementById('subtitle').textContent = data.subtitle;
+      document.getElementById('subtitle').textContent =
+        data.subtitle;
 
     if(data.welcome_text)
-      document.getElementById('welcomeText').textContent = data.welcome_text;
+      document.getElementById('welcomeText').textContent =
+        data.welcome_text;
 
     if(data.delivery_text)
-      document.getElementById('deliveryText').textContent = data.delivery_text;
+      document.getElementById('deliveryText').textContent =
+        data.delivery_text;
 
     if(data.contact){
 
@@ -200,48 +332,66 @@ async function loadShop(){
 
 async function loadProducts(){
 
-  const {data, error} = await sb
+  const {data,error} = await sb
     .from('products')
     .select('*')
-    .eq('active', true)
-    .order('created_at', {ascending:false});
+    .eq('active',true)
+    .order('created_at',{ascending:false});
 
   const container =
     document.getElementById('products');
 
   if(error){
+
     console.log(error);
+
     container.innerHTML =
       '<div class="empty">Impossible de charger les produits.</div>';
+
     return;
   }
 
   if(!data || data.length === 0){
+
     container.innerHTML =
       '<div class="empty">Aucun produit disponible pour le moment.</div>';
+
     return;
   }
+
+  products = data;
 
   container.innerHTML = '';
 
   data.forEach(product => {
 
     const card = document.createElement('div');
+
     card.className = 'product';
 
     let image = '';
 
     if(product.image_url){
+
       image =
         `<img src="${product.image_url}" alt="${product.name}">`;
+
     }else{
+
       image =
-        `<div style="height:150px;display:flex;align-items:center;justify-content:center;font-size:55px;background:#eee">
-          ${product.emoji || '🛍️'}
+        `<div style="
+        height:150px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:55px;
+        background:#eee">
+        ${product.emoji || '🛍️'}
         </div>`;
     }
 
     card.innerHTML = `
+
       ${image}
 
       <div class="product-info">
@@ -260,38 +410,237 @@ async function loadProducts(){
           ${Number(product.price).toFixed(2)} €
         </div>
 
-        <button class="order">
-          Commander
+        <button class="add">
+          Ajouter au panier
         </button>
 
       </div>
     `;
 
-    card.querySelector('button').onclick = () => {
+    card.querySelector('.add').onclick = () => {
 
-      const text =
-        `Bonjour, je souhaite commander : ${product.name} - ${Number(product.price).toFixed(2)} €`;
+      addToCart(product);
 
-      const contact =
-        document.getElementById('contactBtn').href;
-
-      if(contact && contact !== '#'){
-        window.open(
-          contact + '?text=' + encodeURIComponent(text),
-          '_blank'
-        );
-      }else{
-        alert(text);
-      }
     };
 
     container.appendChild(card);
+
   });
+
+}
+
+
+function addToCart(product){
+
+  if(!cart[product.id]){
+
+    cart[product.id] = {
+      product:product,
+      quantity:1
+    };
+
+  }else{
+
+    cart[product.id].quantity++;
+
+  }
+
+  updateCart();
+
+}
+
+
+function removeFromCart(id){
+
+  delete cart[id];
+
+  updateCart();
+
+}
+
+
+function changeQuantity(id,change){
+
+  if(!cart[id]) return;
+
+  cart[id].quantity += change;
+
+  if(cart[id].quantity <= 0){
+
+    delete cart[id];
+
+  }
+
+  updateCart();
+
+}
+
+
+function updateCart(){
+
+  let count = 0;
+  let total = 0;
+
+  Object.values(cart).forEach(item => {
+
+    count += item.quantity;
+
+    total +=
+      Number(item.product.price) *
+      item.quantity;
+
+  });
+
+  document.getElementById('cartCount').textContent =
+    count;
+
+  const container =
+    document.getElementById('cartItems');
+
+  if(count === 0){
+
+    container.innerHTML =
+      '<div class="empty">Votre panier est vide.</div>';
+
+  }else{
+
+    container.innerHTML = '';
+
+    Object.values(cart).forEach(item => {
+
+      const product = item.product;
+
+      const div =
+        document.createElement('div');
+
+      div.className = 'cart-item';
+
+      div.innerHTML = `
+
+        <div>
+
+          <strong>${product.name}</strong>
+
+          <br>
+
+          ${Number(product.price).toFixed(2)} €
+
+        </div>
+
+        <div class="quantity">
+
+          <button onclick="changeQuantity('${product.id}',-1)">
+            −
+          </button>
+
+          <strong>${item.quantity}</strong>
+
+          <button onclick="changeQuantity('${product.id}',1)">
+            +
+          </button>
+
+        </div>
+
+      `;
+
+      container.appendChild(div);
+
+    });
+
+  }
+
+  document.getElementById('cartTotal').textContent =
+    'Total : ' + total.toFixed(2) + ' €';
+
+}
+
+
+function openCart(){
+
+  document.getElementById('cart').style.display =
+    'block';
+
+  updateCart();
+
+}
+
+
+function closeCart(){
+
+  document.getElementById('cart').style.display =
+    'none';
+
+}
+
+
+function sendOrder(){
+
+  const items =
+    Object.values(cart);
+
+  if(items.length === 0){
+
+    alert('Votre panier est vide.');
+
+    return;
+
+  }
+
+  let message =
+    'Bonjour, je souhaite passer cette commande :%0A%0A';
+
+  let total = 0;
+
+  items.forEach(item => {
+
+    const product = item.product;
+
+    const lineTotal =
+      Number(product.price) *
+      item.quantity;
+
+    total += lineTotal;
+
+    message +=
+      '• ' +
+      product.name +
+      ' x' +
+      item.quantity +
+      ' = ' +
+      lineTotal.toFixed(2) +
+      ' €%0A';
+
+  });
+
+  message +=
+    '%0ATotal : ' +
+    total.toFixed(2) +
+    ' €';
+
+  const contact =
+    document.getElementById('contactBtn').href;
+
+  if(contact && contact !== '#'){
+
+    window.open(
+      contact + '?text=' + message,
+      '_blank'
+    );
+
+  }else{
+
+    alert(
+      decodeURIComponent(message)
+    );
+
+  }
+
 }
 
 
 loadShop();
 loadProducts();
+updateCart();
 
 </script>
 

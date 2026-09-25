@@ -398,9 +398,17 @@ async function loadShop(){
     .limit(1)
     .maybeSingle();
 
-  if(error){
-    console.log(error);
-    return;
+ if(error){
+
+  console.log(error);
+
+  container.innerHTML =
+    '<div class="empty">Erreur produits : ' +
+    error.message +
+    '</div>';
+
+  return;
+}
   }
 
   if(data){

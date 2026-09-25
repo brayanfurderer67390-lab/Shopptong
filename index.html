@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHOPPTON-G68</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f5f5f5;
+  color:#111;
+}
+header{
+  background:#111;
+  color:white;
+  padding:22px 18px;
+  text-align:center;
+}
+header h1{margin:0;font-size:28px}
+header p{margin:8px 0 0;color:#ccc}
+
+.container{
+  max-width:700px;
+  margin:auto;
+  padding:18px;
+}
+
+.welcome{
+  background:white;
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 2px 10px #0001;
+}
+
+.products{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.product{
+  background:white;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 2px 10px #0001;
+}
+
+.product img{
+  width:100%;
+  height:150px;
+  object-fit:cover;
+  background:#eee;
+}
+
+.product-info{padding:14px}
+.product h3{margin:0 0 8px}
+.price{
+  font-size:20px;
+  font-weight:bold;
+}
+.weight{
+  color:#777;
+  font-size:14px;
+  margin:5px 0 12px;
+}
+
+button{
+  border:0;
+  border-radius:12px;
+  padding:11px 14px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.order{
+  width:100%;
+  background:#111;
+  color:white;
+}
+
+.contact{
+  display:block;
+  text-align:center;
+  background:#229ED9;
+  color:white;
+  text-decoration:none;
+  padding:15px;
+  border-radius:14px;
+  margin-top:20px;
+  font-weight:bold;
+}
+
+.empty{
+  text-align:center;
+  padding:30px;
+  color:#777;
+}
+
+@media(max-width:450px){
+  .products{grid-template-columns:1fr 1fr}
+  .product img{height:125px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1 id="shopName">SHOPPTON-G68</h1>
+  <p id="subtitle">Votre boutique</p>
+</header>
+
+<div class="container">
+
+  <div class="welcome">
+    <h2>Bienvenue 👋</h2>
+    <p id="welcomeText">Bienvenue sur SHOPPTON-G68</p>
+    <p id="deliveryText">Livraison disponible</p>
+  </div>
+
+  <h2>🛍️ Nos produits</h2>
+
+  <div id="products" class="products">
+    <div class="empty">Chargement...</div>
+  </div>
+
+  <a id="contactBtn"
+     class="contact"
+     href="#"
+     target="_blank">
+     💬 Commander sur Telegram
+  </a>
+
+</div>
+
+<script>
+
+const SUPABASE_URL =
+'https://eioqszrcedwiixicsnij.supabase.co';
+
+const SUPABASE_ANON_KEY = `
+COLLE_TA_CLE_PUBLISHABLE_ICI
+`.replace(/\s/g,'');
+
+const sb = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+
+async function loadShop(){
+
+  const {data, error} = await sb
+    .from('settings')
+    .select('*')
+    .limit(1)
+    .maybeSingle();
+
+  if(error){
+    console.log(error);
+    return;
+  }
+
+  if(data){
+
+    if(data.shop_name)
+      document.getElementById('shopName').textContent = data.shop_name;
+
+    if(data.subtitle)
+      document.getElementById('subtitle').textContent = data.subtitle;
+
+    if(data.welcome_text)
+      document.getElementById('welcomeText').textContent = data.welcome_text;
+
+    if(data.delivery_text)
+      document.getElementById('deliveryText').textContent = data.delivery_text;
+
+    if(data.contact){
+
+      let contact = data.contact;
+
+      if(contact.startsWith('@'))
+        contact = contact.substring(1);
+
+      document.getElementById('contactBtn').href =
+        'https://t.me/' + contact;
+    }
+  }
+}
+
+
+async function loadProducts(){
+
+  const {data, error} = await sb
+    .from('products')
+    .select('*')
+    .eq('active', true)
+    .order('created_at', {ascending:false});
+
+  const container =
+    document.getElementById('products');
+
+  if(error){
+    console.log(error);
+    container.innerHTML =
+      '<div class="empty">Impossible de charger les produits.</div>';
+    return;
+  }
+
+  if(!data || data.length === 0){
+    container.innerHTML =
+      '<div class="empty">Aucun produit disponible pour le moment.</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+
+  data.forEach(product => {
+
+    const card = document.createElement('div');
+    card.className = 'product';
+
+    let image = '';
+
+    if(product.image_url){
+      image =
+        `<img src="${product.image_url}" alt="${product.name}">`;
+    }else{
+      image =
+        `<div style="height:150px;display:flex;align-items:center;justify-content:center;font-size:55px;background:#eee">
+          ${product.emoji || '🛍️'}
+        </div>`;
+    }
+
+    card.innerHTML = `
+      ${image}
+
+      <div class="product-info">
+
+        <h3>
+          ${product.emoji || ''} ${product.name}
+        </h3>
+
+        ${
+          product.weight
+          ? `<div class="weight">${product.weight}</div>`
+          : ''
+        }
+
+        <div class="price">
+          ${Number(product.price).toFixed(2)} €
+        </div>
+
+        <button class="order">
+          Commander
+        </button>
+
+      </div>
+    `;
+
+    card.querySelector('button').onclick = () => {
+
+      const text =
+        `Bonjour, je souhaite commander : ${product.name} - ${Number(product.price).toFixed(2)} €`;
+
+      const contact =
+        document.getElementById('contactBtn').href;
+
+      if(contact && contact !== '#'){
+        window.open(
+          contact + '?text=' + encodeURIComponent(text),
+          '_blank'
+        );
+      }else{
+        alert(text);
+      }
+    };
+
+    container.appendChild(card);
+  });
+}
+
+
+loadShop();
+loadProducts();
+
+</script>
+
+</body>
+</html>
